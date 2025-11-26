@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .price-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #D4AF37;
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: #FFF;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 999999;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .price-tooltip.buy {
+            border-color: #90EE90;
+        }
+
+        .price-tooltip.sell {
+            border-color: #FFD700;
+        }
+
+        .price-label {
+            color: #D4AF37;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .price-amount {
+            color: #90EE90;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Highlight sellable items in player inventory */
+        .sellable-item-highlight {
+            position: absolute;
+            border: 3px solid #90EE90 !important;
+            box-shadow: 0 0 15px rgba(144, 238, 144, 0.6) !important;
+            pointer-events: none;
+            z-index: 99999;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="price-tooltip" class="price-tooltip">
+        <div class="price-label"></div>
+        <div class="price-amount"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let storeData = null;
+        let isStoreOpen = false;
+        let highlightIntervals = [];
+
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            
+            if (data.action === 'showPricing') {
+                storeData = data.storeData;
+                isStoreOpen = true;
+                startPriceTracking();
+            } else if (data.action === 'hidePricing') {
+                isStoreOpen = false;
+                storeData = null;
+                stopPriceTracking();
+                $('#price-tooltip').hide();
+            }
+        });
+
+        function startPriceTracking() {
+            // Track mouse movement over inventory items
+            $(document).on('mousemove.storepricing', function(e) {
+                if (!isStoreOpen || !storeData) return;
+                
+                // Find if we're hovering over an inventory item
+                const element = document.elementFromPoint(e.clientX, e.clientY);
+                const inventoryItem = $(element).closest('.item, [class*="item"]');
+                
+                if (inventoryItem.length > 0) {
+                    checkItemPrice(inventoryItem, e.clientX, e.clientY);
+                } else {
+                    $('#price-tooltip').hide();
+                }
+            });
+
+            // Highlight sellable items in player inventory
+            const highlightInterval = setInterval(highlightSellableItems, 500);
+            highlightIntervals.push(highlightInterval);
+        }
+
+        function stopPriceTracking() {
+            $(document).off('mousemove.storepricing');
+            highlightIntervals.forEach(interval => clearInterval(interval));
+            highlightIntervals = [];
+            $('.sellable-item-highlight').remove();
+        }
+
+        function checkItemPrice(itemElement, mouseX, mouseY) {
+            // Try to extract item name from the element
+            const itemName = getItemNameFromElement(itemElement);
+            
+            if (!itemName) {
+                $('#price-tooltip').hide();
+                return;
+            }
+
+            // Check if it's a store item (left side) or player item (right side)
+            const isContainerItem = isInContainer(itemElement);
+            
+            let price = null;
+            let type = null;
+
+            if (isContainerItem) {
+                // Item in store - check buy price
+                const buyItem = storeData.buyItems?.find(item => item.name === itemName);
+                if (buyItem) {
+                    price = buyItem.price;
+                    type = 'buy';
+                }
+            } else {
+                // Item in player inventory - check sell price
+                const sellItem = storeData.sellItems?.find(item => item.name === itemName);
+                if (sellItem) {
+                    price = sellItem.price;
+                    type = 'sell';
+                }
+            }
+
+            if (price !== null) {
+                showPriceTooltip(price, type, mouseX, mouseY);
+            } else {
+                $('#price-tooltip').hide();
+            }
+        }
+
+        function getItemNameFromElement(element) {
+            // Try multiple methods to extract item name
+            const dataName = element.attr('data-name') || element.attr('data-item');
+            if (dataName) return dataName;
+
+            // Try to find image src with item name
+            const img = element.find('img').first();
+            if (img.length > 0) {
+                const src = img.attr('src');
+                if (src) {
+                    const match = src.match(/items\/([^\.]+)\./);
+                    if (match) return match[1];
+                }
+            }
+
+            // Try to find in parent data attributes
+            const parent = element.parent();
+            const parentName = parent.attr('data-name') || parent.attr('data-item');
+            if (parentName) return parentName;
+
+            return null;
+        }
+
+        function isInContainer(element) {
+            // Check if element is in the left side (container/store) or right side (player)
+            const inventoryElement = element.closest('#inventoryElement, .inventory-left, [class*="left"]');
+            return inventoryElement.length > 0;
+        }
+
+        function showPriceTooltip(price, type, x, y) {
+            const tooltip = $('#price-tooltip');
+            
+            tooltip.removeClass('buy sell').addClass(type);
+            
+            if (type === 'buy') {
+                tooltip.find('.price-label').text('Buy Price:');
+            } else {
+                tooltip.find('.price-label').text('Sell Price:');
+            }
+            
+            tooltip.find('.price-amount').text('$' + parseFloat(price).toFixed(2));
+            
+            tooltip.css({
+                left: x + 20 + 'px',
+                top: y - 40 + 'px',
+                display: 'block'
+            });
+        }
+
+        function highlightSellableItems() {
+            if (!isStoreOpen || !storeData || !storeData.sellItems) return;
+
+            // Remove old highlights
+            $('.sellable-item-highlight').remove();
+
+            // Find all items in player inventory
+            const inventoryItems = $('.item, [class*="item"]').not('[class*="container"]');
+            
+            inventoryItems.each(function() {
+                const element = $(this);
+                const itemName = getItemNameFromElement(element);
+                
+                if (!itemName) return;
+                
+                // Check if this item is sellable
+                const isSellable = storeData.sellItems.some(item => item.name === itemName);
+                
+                if (isSellable && !isInContainer(element)) {
+                    // Add highlight
+                    const rect = this.getBoundingClientRect();
+                    const highlight = $('<div class="sellable-item-highlight"></div>');
+                    highlight.css({
+                        left: rect.left + 'px',
+                        top: rect.top + 'px',
+                        width: rect.width + 'px',
+                        height: rect.height + 'px'
+                    });
+                    $('body').append(highlight);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
