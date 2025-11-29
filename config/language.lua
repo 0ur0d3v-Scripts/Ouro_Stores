@@ -58,11 +58,6 @@ language = {
     cantownmoreclan = "Clan can't own more than ",
     tooclosetoshop = "Too close to another shop",
     
-    -- Webhooks
-    webhook = "Webhook",
-    setwebhook = "Set Webhook",
-    webhookset = "Webhook set successfully",
-    
     -- Repo
     taxnotpaid = "Tax not paid, store will be repossessed",
     taxpaid = "Tax paid successfully",

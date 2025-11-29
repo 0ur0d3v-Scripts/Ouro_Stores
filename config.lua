@@ -16,19 +16,6 @@ Config.DecayPercentage = 10 -- if above is true then only items with 10 or above
 -- items sold to store based on decay percentage if enabled above
 Config.SellItemBasedOnPercentage = false -- if is true then it will sell items based on the percentage you set below like item to sell has 80% decay and price is 40$ player get only 38.25$
 
-
--- Webhook Section, description is in translation
-Config.UseWebhook = false -- Use webhook
-
-Config.WebhookLanguage = {
-    -- webhook link is in the server.lua
-    WebhookTitle = "",
-    WebhookColor = "",
-    WebhookName = "",
-    WebhookLogo = "",
-    WebhookLogo2 = "",
-    WebhookAvatar = ""
-}
 -- if you have UI you want to hid use it in this function
 -- remove what you dont use
 Config.UI = function(state)

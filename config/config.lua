@@ -83,7 +83,6 @@ Config.playerstoretax = 50 -- how much is the tax for player owned stores
 Config.interactiondistance = 1.5 -- distance which shop interaction prompt is shown
 Config.initalstorage = 100 -- newly created stores will have this much capacity
 Config.upgradecost = 1 -- price per slot
-Config.allowuserwebhooks = true
 Config.shopspacing = 5 -- shops cant be too close to each other
 Config.moveshopcost = 100 -- how much it costs to move a shop
 Config.relocatecommand = "moveshop" -- command to move a shop by player
@@ -114,10 +113,4 @@ Config.moveshopcommand = "adminmoveshop" -- move shop to a new location admin co
 Config.unreposhopcommand = "unreposhop" -- admin command to unrepo a shop
 Config.adminrepocommand = "reposhop" -- sets the shop as repo this doesnt delete the shop just simply hides it from the players
 Config.admindeleteshopcommand = "delshop" -- admin command to delete shops example /delshop shopid
-
--- ==============================================
--- WEBHOOKS
--- ==============================================
-Config.adminwebhook = ""
-Config.webhookavatar = ""
 

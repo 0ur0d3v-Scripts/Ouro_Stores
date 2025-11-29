@@ -15,7 +15,6 @@ A comprehensive store system for RedM/VORP that supports multiple store types:
 - Store management system with permissions
 - Blip system for each store type
 - NPC spawning at store locations
-- Webhook support for logging
 - Store repossession system for unpaid taxes
 - Admin commands for store management
 - Full integration with Ouro_Society for jobs and clans
@@ -204,8 +203,10 @@ local playerStores = exports.Ouro_stores:GetPlayerStores()
 - Store statistics and logs
 
 ## Credits
+## Credits
 
-- Configuration structure inspired by syn_stores
-- Developed for Ouro RedM Server
-- Integrated with Ouro_Society system
-
+- **UI Design & Base Architecture**: Inspired by syn_stores for store structure and interface design
+- **Framework Integration**: Built with VORP Core and VORP Inventory
+- **Special Thanks**: VORP and Syn development teams for foundational design
+- **Developed for**: Ouro RedM Server
+- **Integrated with**: Ouro_Society system
